@@ -161,40 +161,32 @@ set -uxo pipefail
   Define retention pattern
 #}
 {% macro retention_pattern(repo) -%}
-  {% if repo.keep_last is defined and repo.keep_last != None %}--keep-last {{ item.keep_last }}{% endif %} \
-  {% if repo.keep_hourly is defined and repo.keep_hourly != None %}--keep-hourly {{ item.keep_hourly }}{% endif %} \
-  {% if repo.keep_daily is defined and repo.keep_daily != None %}--keep-daily {{ item.keep_daily }}{% endif %} \
-  {% if repo.keep_weekly is defined and repo.keep_weekly != None %}--keep-weekly {{ item.keep_weekly }}{% endif %} \
-  {% if repo.keep_monthly is defined and repo.keep_monthly != None %}--keep-monthly {{ item.keep_monthly }}{% endif %} \
-  {% if repo.keep_yearly is defined and repo.keep_yearly != None %}--keep-yearly {{ item.keep_yearly }}{% endif %} \
-  {% if repo.keep_within is defined and repo.keep_within != None %}--keep-within {{ item.keep_within }}{% endif %} \
-  {% if repo.keep_tag is defined and (repo.keep_tag|length>0) %}{{ keep_tags(repo.keep_tag) }}{% endif %}
+{% if repo.keep_last is defined and repo.keep_last != None %}  --keep-last {{ item.keep_last }}{% endif %} \
+{% if repo.keep_hourly is defined and repo.keep_hourly != None %}  --keep-hourly {{ item.keep_hourly }}{% endif %} \
+{% if repo.keep_daily is defined and repo.keep_daily != None %}  --keep-daily {{ item.keep_daily }}{% endif %} \
+{% if repo.keep_weekly is defined and repo.keep_weekly != None %}  --keep-weekly {{ item.keep_weekly }}{% endif %} \
+{% if repo.keep_monthly is defined and repo.keep_monthly != None %}  --keep-monthly {{ item.keep_monthly }}{% endif %} \
+{% if repo.keep_yearly is defined and repo.keep_yearly != None %}  --keep-yearly {{ item.keep_yearly }}{% endif %} \
+{% if repo.keep_within is defined and repo.keep_within != None %}  --keep-within {{ item.keep_within }}{% endif %} \
+{% if repo.keep_tag is defined and (repo.keep_tag|length>0) %}  {{ keep_tags(repo.keep_tag) }}{% endif %}
 {%- endmacro %}
 
 {% macro exclude(exclude) %}
-    {% if exclude.exclude_caches is defined and exclude.exclude_caches == true %}
-        --exclude-caches \
-    {% endif %}
-    {% if exclude.exclude is defined %}
-        {% for path in exclude.exclude %}
-            --exclude {{ path }} \
-        {% endfor %}
-    {% endif %}
-    {% if exclude.iexclude is defined %}
-        {% for path in exclude.iexclude %}
-            --iexclude {{ path }} \
-        {% endfor %}
-    {% endif %}
-    {% if exclude.exclude_file is defined %}
-        {% for path in exclude.exclude_file %}
-            --exclude-file {{ path }} \
-        {% endfor %}
-    {% endif %}
-    {% if exclude.exclude_if_present is defined %}
-        {% for path in exclude.exclude_if_present %}
-            --exclude-if-present {{ path }} \
-        {% endfor %}
-    {% endif %}
+{% if exclude.exclude_caches is defined and exclude.exclude_caches == true %}
+    --exclude-caches \
+{% endif %}
+{% if exclude.exclude is defined %}{% for path in exclude.exclude %}
+    --exclude {{ path }} \
+{% endfor %}{% endif %}
+{% if exclude.iexclude is defined %}{% for path in exclude.iexclude %}
+    --iexclude {{ path }} \
+{% endfor %}{% endif %}
+{% if exclude.exclude_file is defined %}{% for path in exclude.exclude_file %}
+    --exclude-file {{ path }} \
+{% endfor %}{% endif %}
+{% if exclude.exclude_if_present is defined %}{% for path in exclude.exclude_if_present %}
+    --exclude-if-present {{ path }} \
+{% endfor %}{% endif %}
 {% endmacro %}
 
 {#
