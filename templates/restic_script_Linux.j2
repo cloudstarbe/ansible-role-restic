@@ -3,6 +3,10 @@
 # Backup script for {{ item.src|default('stdin') }}
 # Use this file to create a Backup and prune existing data with one execution.
 
+{% if restic_report_healthchecks %}
+  curl --silent {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}/start?create=1
+{% endif %}
+
 pid="/var/run/restic_backup_{{  item.name | regex_replace('\'', '\'\\\'\'') }}.pid"
 trap "rm -f $pid" SIGSEGV
 trap "rm -f $pid" SIGINT
@@ -116,36 +120,43 @@ function cleanup_vol {
 {% endif %}
 
 set -uxo pipefail
+
 {#
   Define Tags
 #}
 {% macro tags(tags) -%}
   {% if tags is defined and (tags|length>0) %}{% for tag in tags %} --tag {{ tag }}{% endfor %}{% endif %}
 {%- endmacro %}
+
 {#
   Define Keeped Tags
 #}
 {% macro keep_tags(tags) -%}
   {% if tags is defined and (tags|length>0) %}{% for tag in tags %} --keep-tag {{ tag }}{% endfor %}{% endif %}
 {%- endmacro %}
+
 {#
   Define Hostname
 #}
 {% macro hostname(h) -%}
   {% if h is defined %} --hostname {{ h }}{% endif %}
 {%- endmacro %}
+
 {#
   Define stdin filename
 #}
+
 {% macro stdin_filename(n) -%}
   {% if n is defined %} --stdin-filename {{ n }}{% endif %}
 {%- endmacro %}
+
 {#
   Define paths
 #}
 {% macro paths(repo) -%}
 {% if repo.src is defined and repo.src != None and (repo.src is not string)  %}{%for path in repo.src %} --path {{ path }}{% endfor %}{%elif repo.src is string %}--path {{repo.src}} {% else %} --path {{ repo.stdin_filename }}{% endif %}
 {%- endmacro %}
+
 {#
   Define retention pattern
 #}
@@ -185,6 +196,7 @@ set -uxo pipefail
         {% endfor %}
     {% endif %}
 {% endmacro %}
+
 {#
   Define backup commands
 #}
@@ -236,7 +248,6 @@ esac
 {% if item.lvm is defined %}
     cleanup_vol $BACKUP_SOURCE
 {% endif %}
-
 
 {#
   Define stdin forget commands
