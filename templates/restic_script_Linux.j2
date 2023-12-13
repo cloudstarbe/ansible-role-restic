@@ -9,19 +9,15 @@ trap "rm -f $pid" SIGINT
 
 if [ -e $pid ]; then
   echo "Another version of this restic backup script is already running!"
-   {% if item.mail_on_error is defined and item.mail_on_error == true %}
-    mail -s "starting restic backup failed on {{ ansible_hostname }}" {{ item.mail_address }}  <<< "Another restic backup process is already running. We canceled starting a new restic backup script running at {{ ansible_hostname }} at $(date -u '+%Y-%m-%d %H:%M:%S').
-      {%- if item.src is defined -%}
-        {{ ' ' }}We tried to backup '{{ item.src }}'.
-      {%- endif -%}
-      {{ ' ' }}Please repair the restic-{{ item.name | replace(' ', '') }} job."
-    {% endif %}
+{% if restic_report_healthchecks %}
+  curl --silent {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}/fail?create=1
+  curl --silent -d "Another version of this restic backup script is already running!" {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}/log?create=1
+{% endif %}
    exit # pid file exists, another instance is running, so now we politely exit
 else
     echo $$ > $pid # pid file doesn't exit, create one and go on
 fi
 # your normal workflow here...
-
 
 {% if item.disable_logging is defined and item.disable_logging %}
 {% set backup_result_log, backup_output_log = "/dev/null", "/dev/null" %}
@@ -45,42 +41,7 @@ fi
 export GOMAXPROCS={{ restic__max_cpus }}
 {% endif %}
 
-export RESTIC_REPOSITORY={{ restic_repos[item.repo].location }}
-export RESTIC_PASSWORD='{{ restic_repos[item.repo].password | regex_replace('\'', '\'\\\'\'') }}'
-BACKUP_NAME={{ item.name }}
-{% if restic_repos[item.repo].aws_access_key is defined %}
-export AWS_ACCESS_KEY_ID={{ restic_repos[item.repo].aws_access_key }}
-{% endif %}
-{% if restic_repos[item.repo].aws_secret_access_key is defined %}
-export AWS_SECRET_ACCESS_KEY='{{ restic_repos[item.repo].aws_secret_access_key | regex_replace('\'', '\'\\\'\'') }}'
-{% endif %}
-{% if restic_repos[item.repo].aws_default_region is defined %}
-export AWS_DEFAULT_REGION={{ restic_repos[item.repo].aws_default_region }}
-{% endif %}
-{% if restic_repos[item.repo].azure_account_name is defined %}
-export AZURE_ACCOUNT_NAME={{ restic_repos[item.repo].azure_account_name }}
-{% endif %}
-{% if restic_repos[item.repo].azure_account_key is defined %}
-export AZURE_ACCOUNT_KEY={{ restic_repos[item.repo].azure_account_key }}
-{% endif %}
-{% if restic_repos[item.repo].azure_account_sas is defined %}
-export AZURE_ACCOUNT_SAS='{{ restic_repos[item.repo].azure_account_sas }}'
-{% endif %}
-{% if restic_repos[item.repo].azure_endpoint_suffix is defined %}
-export AZURE_ENDPOINT_SUFFIX={{ restic_repos[item.repo].azure_endpoint_suffix }}
-{% endif %}
-{% if restic_repos[item.repo].b2_account_id is defined %}
-export B2_ACCOUNT_ID={{ restic_repos[item.repo].b2_account_id }}
-{% endif %}
-{% if restic_repos[item.repo].b2_account_key is defined %}
-export B2_ACCOUNT_KEY={{ restic_repos[item.repo].b2_account_key }}
-{% endif %}
-{% if item.src is defined  and item.src is string %}
-BACKUP_SOURCE={{ item.src }}
-{% endif %}
-{% if item.src is defined  and item.src.__class__.__name__ =='list' %}
-BACKUP_SOURCE={{ item.src| join(' ') }}
-{% endif %}
+source "{{ restic_script_dir }}/access-{{ item.name | replace(' ', '') }}.sh"
 
 {% if item.lvm is defined %}
 # Set up functions for LVM.
@@ -242,10 +203,10 @@ fi
     $@ \
 {% else %}
 {
-  {% if item.lvm is defined %}prepare_vol $BACKUP_SOURCE &&{% endif %}
+{% if item.lvm is defined %}prepare_vol $BACKUP_SOURCE &&{% endif %}
   {{ restic_install_path }}/restic backup {% if item.lvm is defined and item.src == '/' %}/rootfs{% endif %}$BACKUP_SOURCE $MODE_TAG \
     {{ tags(item.tags) }} \
-    {% if item.exclude is defined %}{{ exclude(item.exclude) }}{% endif %} \
+{% if item.exclude is defined %}{{ exclude(item.exclude) }}{% endif %} \
     $@
 } \
 {% endif %} {{ backup_output_log }}
@@ -253,18 +214,22 @@ fi
 case $? in
     0)
         echo "$(date -u '+%Y-%m-%d %H:%M:%S') OK" {{ backup_result_log }}
+{% if restic_report_healthchecks %}
+        curl --silent {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}?create=1
+{% endif %}
         ;;
     3)
         echo "$(date -u '+%Y-%m-%d %H:%M:%S') WARNING" {{ backup_result_log }}
+{% if restic_report_healthchecks %}
+        curl --silent {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}/fail?create=1
+        curl --silent -d "WARNING {{ backup_result_log }}" {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}/log?create=1
+{% endif %}
         ;;
     *)
         echo "$(date -u '+%Y-%m-%d %H:%M:%S') ERROR" {{ backup_result_log }}
-    {% if item.mail_on_error is defined and item.mail_on_error == true %}
-    mail -s "restic backup failed on {{ ansible_hostname }}" {{ item.mail_address }}  <<< "Something went wrong while running restic backup script running at {{ ansible_hostname }} at $(date -u '+%Y-%m-%d %H:%M:%S').
-      {%- if item.src is defined -%}
-        {{ ' ' }}We tried to backup '{{ item.src }}'.
-      {%- endif -%}
-      {{ ' ' }}Please repair the restic-{{ item.name | replace(' ', '') }} job."
+{% if restic_report_healthchecks %}
+        curl --silent {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}/fail?create=1
+        curl --silent -d "ERROR {{ backup_result_log }}" {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}/log?create=1
 {% endif %}
 esac
 
@@ -279,19 +244,21 @@ esac
 {{ restic_install_path }}/restic forget {{ paths(item) }} {{ retention_pattern(item) }} {% if item.prune is defined and item.prune == true %}--prune{% endif %} {{ forget_output_log }}
 if [[ $? -eq 0 ]]
 then
-    echo "$(date -u '+%Y-%m-%d %H:%M:%S') OK" {{ forget_result_log }}
-    {% if item.monitoring_call is defined %}
-    {{ item.monitoring_call }}
-    {% endif %}
+  echo "$(date -u '+%Y-%m-%d %H:%M:%S') OK" {{ forget_result_log }}
+{% if restic_report_healthchecks %}
+  curl --silent {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}?create=1
+{% endif %}
+
+{% if item.monitoring_call is defined %}
+  {{ item.monitoring_call }}
+{% endif %}
 else
-    echo "$(date -u '+%Y-%m-%d %H:%M:%S') ERROR" {{ forget_result_log }}
-    {% if item.mail_on_error is defined and item.mail_on_error == true %}
-    mail -s "restic backup failed on {{ ansible_hostname }}" {{ item.mail_address }}  <<< "Something went wrong while running restic backup script running at {{ ansible_hostname }} at $(date -u '+%Y-%m-%d %H:%M:%S').
-      {%- if item.src is defined -%}
-        {{ ' ' }}We tried to backup '{{ item.src }}'.
-      {%- endif -%}
-      {{ ' ' }}Please repair the restic-{{ item.name | replace(' ', '') }} job."
-    {% endif %}
+  echo "$(date -u '+%Y-%m-%d %H:%M:%S') ERROR" {{ forget_result_log }}
+{% if restic_report_healthchecks %}
+  curl --silent {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}/fail?create=1
+  curl --silent -d "Something went wrong while running restic forget script!" {{ restic_report_healthchecks_url }}/ping/{{ restic_report_healthchecks_ping_key }}/{{ inventory_hostname }}/log?create=1
+{% endif %}
 fi
+
 rm -f $pid # remove pid file just before exiting
 exit

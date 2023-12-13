@@ -34,3 +34,7 @@ restic__max_cpus: 1
 
 # outdated variables because of irritating names, but kept for compatibility
 restic_create_cron: false
+
+restic_report_healthchecks: false
+restic_report_healthchecks_url: https://healthchecks.io/
+restic_report_healthchecks_ping_key: 'someKeyFromHealthchecksProfile'

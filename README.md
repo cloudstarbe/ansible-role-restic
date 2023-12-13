@@ -65,28 +65,32 @@ ansible-galaxy install roles-ansible.restic
 
 ## Role Variables
 
-| Name                          | Default                         | Description                                                                                                                                          |
-|-------------------------------|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `restic_url`                  | `undefined`                     | The URL to download restic from. Use this variable to overwrite the default                                                                          |
-| `restic_version`              | `'0.15.1'`                      | The version of Restic to install                                                                                                                     |
-| `restic_download_path`        | `'/opt/restic'`                 | Download location for the restic binary                                                                                                              |
-| `restic_install_path`         | `'/usr/local/bin'`              | Install location for the restic binary                                                                                                               |
-| `restic_script_dir`           | `'/opt/restic'`                 | Location of the generated backup scripts                                                                                                             |
-| `restic_log_dir`              | `'{{ restic_script_dir }}/log'` | Location of the logs of the backup scripts                                                                                                           |
-| `restic_repos`                | `{}`                            | A dictionary of repositories where snapshots are stored. *(More Info: [Repos](#Repos))*                                                              |
-| `restic_backups`              | `{}` (or `[]`)                  | A list of dictionaries specifying the files and directories to be backed up *(More Infos: [Backups](#Backups))*                                      |
-| `restic_create_schedule`      | `false`                         | Should we schedule each backup? Either via cronjob or via systemd timer.                                                                             |
-| `restic_backup_now`           | `false`                         | Whether or not the backup script should be run immediately                                                                                           |
-| `restic_schedule_type`        | `systemd`                       | Here you can define if we create a ``cronjob`` or a ``systemd`` timer. If it fails to create a systemd timer, a cronjob will be created.             |
-| `restic_dir_owner`            | `'{{ansible_user}}'`            | The owner of all created dirs                                                                                                                        |
-| `restic_dir_group`            | `'{{ansible_user}}'`            | The group of all created dirs                                                                                                                        |
-| `restic_no_log`               | `true`                          | Set to false to see hidden ansible logs                                                                                                              |
-| `restic_do_not_cleanup_cron ` | `false`                         | We changed the cron location and clean up the old one. You can skip the cleanup here                                                                 |
-| `restic__cache_config`        | `false`                         | Configure custom cache directory                                                                                                                     |
-| `restic__cache_dir`           | `'~/.cache/restic'`             | Define custom cache directory                                                                                                                        |
-| `submodules_versioncheck`     | `false`                         | If you set this variable to true, the role will run a [simple versionscheck](tasks/versioncheck.yml) to prevent running older versions of this role. |
-| `restic__limit_cpu_usage`     | `false`                         | Should CPU usage be limited?                                                                                                                         |
-| `restic__max_cpus`            | `1`                             | Maximum number of CPUs that can be used simultaneously                                                                                               |
+| Name                                  | Default                         | Description                                                                                                                                          |
+|---------------------------------------|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `restic_url`                          | `undefined`                     | The URL to download restic from. Use this variable to overwrite the default                                                                          |
+| `restic_version`                      | `'0.15.1'`                      | The version of Restic to install                                                                                                                     |
+| `restic_download_path`                | `'/opt/restic'`                 | Download location for the restic binary                                                                                                              |
+| `restic_install_path`                 | `'/usr/local/bin'`              | Install location for the restic binary                                                                                                               |
+| `restic_script_dir`                   | `'/opt/restic'`                 | Location of the generated backup scripts                                                                                                             |
+| `restic_log_dir`                      | `'{{ restic_script_dir }}/log'` | Location of the logs of the backup scripts                                                                                                           |
+| `restic_repos`                        | `{}`                            | A dictionary of repositories where snapshots are stored. *(More Info: [Repos](#Repos))*                                                              |
+| `restic_backups`                      | `{}` (or `[]`)                  | A list of dictionaries specifying the files and directories to be backed up *(More Infos: [Backups](#Backups))*                                      |
+| `restic_create_schedule`              | `false`                         | Should we schedule each backup? Either via cronjob or via systemd timer.                                                                             |
+| `restic_backup_now`                   | `false`                         | Whether or not the backup script should be run immediately                                                                                           |
+| `restic_schedule_type`                | `systemd`                       | Here you can define if we create a ``cronjob`` or a ``systemd`` timer. If it fails to create a systemd timer, a cronjob will be created.             |
+| `restic_dir_owner`                    | `'{{ansible_user}}'`            | The owner of all created dirs                                                                                                                        |
+| `restic_dir_group`                    | `'{{ansible_user}}'`            | The group of all created dirs                                                                                                                        |
+| `restic_no_log`                       | `true`                          | Set to false to see hidden ansible logs                                                                                                              |
+| `restic_do_not_cleanup_cron `         | `false`                         | We changed the cron location and clean up the old one. You can skip the cleanup here                                                                 |
+| `restic__cache_config`                | `false`                         | Configure custom cache directory                                                                                                                     |
+| `restic__cache_dir`                   | `'~/.cache/restic'`             | Define custom cache directory                                                                                                                        |
+| `submodules_versioncheck`             | `false`                         | If you set this variable to true, the role will run a [simple versionscheck](tasks/versioncheck.yml) to prevent running older versions of this role. |
+| `restic__limit_cpu_usage`             | `false`                         | Should CPU usage be limited?                                                                                                                         |
+| `restic__max_cpus`                    | `1`                             | Maximum number of CPUs that can be used simultaneously                                                                                               |
+| `restic_report_healthchecks`          | `false`                         | Enable sending a Healthcheck Curl request to your Healthchecks instance                                                                              |
+| `restic_report_healthchecks_url`      | `https://healthchecks.io/`      | The URL of your Healthchecks instance                                                                                                                |
+| `restic_report_healthchecks_ping_key` | `someKeyFromHealthchecksProfile`| The Ping Key of your HC Profile                                                                                                                      |
+
 
 ### Repos
 Restic stores data in repositories. You have to specify at least one repository
@@ -176,8 +180,6 @@ Available variables:
 | `exclude`          |           no (`{}`)           | Allows you to specify files to exclude. See [Exclude](#exclude) for reference. |
 | `disable_logging`  |           no                  | Optionally disable logging  |
 | `log_to_journald`  |           no                  | Optionally switch logging to journald with the name of the backup job as the tag |
-| `mail_on_error`    |           no                  | Optionally send a mail if the backupjob will fail *(mailx is required)* |
-| `mail_address`     |  if `mail_on_error` is true   | The mail addressto recive mails if you enabled ``mail_on_error``. |
 | `monitoring_call`  |           no                  | A command that will be called if the backup is *successful*. Useful for heartbeat monitoring systems that warn when no heartbeat is received. Use the full command, you need to run. Example: `curl https://monitoring.example.com/api/push/E9Wzm4lJ2O?status=up&msg=OK&ping=` |
 
 Example:
