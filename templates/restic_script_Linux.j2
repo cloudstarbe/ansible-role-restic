@@ -127,29 +127,24 @@ set -uxo pipefail
 {% macro tags(tags) -%}
   {% if tags is defined and (tags|length>0) %}{% for tag in tags %} --tag {{ tag }}{% endfor %}{% endif %}
 {%- endmacro %}
-
 {#
   Define Keeped Tags
 #}
 {% macro keep_tags(tags) -%}
   {% if tags is defined and (tags|length>0) %}{% for tag in tags %} --keep-tag {{ tag }}{% endfor %}{% endif %}
 {%- endmacro %}
-
 {#
   Define Hostname
 #}
 {% macro hostname(h) -%}
   {% if h is defined %} --hostname {{ h }}{% endif %}
 {%- endmacro %}
-
 {#
   Define stdin filename
 #}
-
 {% macro stdin_filename(n) -%}
   {% if n is defined %} --stdin-filename {{ n }}{% endif %}
 {%- endmacro %}
-
 {#
   Define paths
 #}
@@ -208,7 +203,7 @@ fi
 {% else %}
 {
 {% if item.lvm is defined %}prepare_vol $BACKUP_SOURCE &&{% endif %}
-  {{ restic_install_path }}/restic backup {% if item.lvm is defined and item.src == '/' %}/rootfs{% endif %}$BACKUP_SOURCE $MODE_TAG \
+  {{ restic_install_path }}/restic backup {% if item.lvm is defined and item.src == '/' %}/rootfs{% endif %}$BACKUP_SOURCE $MODE_TAG 
     {{ tags(item.tags) }} \
 {% if item.exclude is defined %}{{ exclude(item.exclude) }}{% endif %} \
     $@
