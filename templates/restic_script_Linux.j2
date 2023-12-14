@@ -35,10 +35,6 @@ fi
 {% endif %}
 {% endif %}
 
-{% if restic__cache_config | bool -%}
-  export XDG_CACHE_HOME={{ restic__cache_dir }}
-{% endif %}
-
 {% if restic__limit_cpu_usage | bool -%}
 # Maximum number of CPUs used by restic is limited to {{ restic__max_cpus }}
 export GOMAXPROCS={{ restic__max_cpus }}
@@ -201,9 +197,9 @@ fi
     $@ \
 {% else %}
 {
-{% if item.lvm is defined %}prepare_vol $BACKUP_SOURCE &&{% endif %}
-  {{ restic_install_path }}/restic backup {% if item.lvm is defined and item.src == '/' %}/rootfs{% endif %}$BACKUP_SOURCE $MODE_TAG 
-    {{ tags(item.tags) }} \
+{% if item.lvm is defined %}prepare_vol $BACKUP_SOURCE &&{% endif %} \
+  {{ restic_install_path }}/restic backup {% if item.lvm is defined and item.src == '/' %}/rootfs{% endif %}$BACKUP_SOURCE $MODE_TAG \
+  {{ tags(item.tags) }} \
 {% if item.exclude is defined %}{{ exclude(item.exclude) }}{% endif %} \
     $@
 } \
