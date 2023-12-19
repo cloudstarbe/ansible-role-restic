@@ -37,10 +37,10 @@ export B2_ACCOUNT_ID={{ restic_repos[item.repo].b2_account_id }}
 {% if restic_repos[item.repo].b2_account_key is defined %}
 export B2_ACCOUNT_KEY={{ restic_repos[item.repo].b2_account_key }}
 {% endif %}
-export BACKUP_NAME={{ item.name }}
+export BACKUP_NAME='{{ item.name }}'
 {% if item.src is defined  and item.src is string %}
-export BACKUP_SOURCE={{ item.src }}
+export BACKUP_SOURCE='{{ item.src }}'
 {% endif %}
 {% if item.src is defined  and item.src.__class__.__name__ =='list' %}
-export BACKUP_SOURCE={{ item.src| join(' ') }}
+export BACKUP_SOURCE='{{ item.src| join(' ') }}'
 {% endif %}
