@@ -53,4 +53,4 @@
       with_items: '{{ restic_backups }}'
       when:
         - item.name is defined
-        - not item.enabled | default(true) 
+        - not item.enabled | default(true)

@@ -166,10 +166,10 @@ set -uxo pipefail
     --exclude-caches \
 {% endif %}
 {% if exclude.exclude is defined %}{% for path in exclude.exclude %}
-    --exclude {{ path }} \
+    --exclude="{{ path }}" \
 {% endfor %}{% endif %}
 {% if exclude.iexclude is defined %}{% for path in exclude.iexclude %}
-    --iexclude {{ path }} \
+    --iexclude="{{ path }}" \
 {% endfor %}{% endif %}
 {% if exclude.exclude_file is defined %}{% for path in exclude.exclude_file %}
     --exclude-file {{ path }} \

@@ -118,6 +118,10 @@ restic_repos:
     location: /srv/restic-repo
     password: securepassword1
     init: true
+  rest:
+    location: rest:user:password@host/user
+    password: securepasswordX
+    init: true
   sftp:
     location: sftp:user@host:/srv/restic-repo
     password: securepassword2
@@ -171,7 +175,7 @@ Available variables:
 | `keep_within`      |              no               | If set, only keeps snapshots in this time period.                                                                                                                            |
 | `keep_tag`         |              no               | If set, keep snapshots with this tags. Make sure to specify a list.                                                                                                          |
 | `prune`            |         no (`false`)          | If `true`, the `restic forget` command in the script has the [`--prune` option](https://restic.readthedocs.io/en/stable/060_forget.html#removing-backup-snapshots) appended. |
-| `scheduled`        |         no (`false`)          | If `restic_create_schedule` is set to `true`, this backup is scheduled and tries to create a systemd timer unit. If it fails, it is creating a cronjob. |
+| `enabled `         |         no (`true `)          | If `enabled` is set to `false`, the systemd services/ timers will be removed         |
 | `schedule_oncalendar` |  ``'*-*-* 02:00:00'``      | The time for the systemd timer. Please notice the randomDelaySec option. By Default the backup is done every night at 2 am (+0-4h). But only if scheduled is true.  |
 | `schedule_minute`  |           no (`*`)            | Minute when the job is run. ( 0-59, *, */2, etc ) |
 | `schedule_hour`    |           no (`2`)            | Hour when the job is run. ( 0-23, *, */2, etc )  |
@@ -186,10 +190,10 @@ Example:
 ```yaml
 restic_backups:
   data:
-    name: data
+    name: data<
     repo: remote
     src: /path/to/data
-    scheduled: true
+    enabled: true
     schedule_oncalendar: '*-*-* 01:00:00'
   database:
     name: database
@@ -197,7 +201,7 @@ restic_backups:
     stdin: true
     stdin_cmd: pg_dump -Ubackup db_name
     stdin_filename: db_name_dump.sql
-    scheduled: true
+    enabled: true
     schedule_oncalendar: '*-*-* 01:30:00'
 ```
 

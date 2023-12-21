@@ -10,4 +10,3 @@
   when:
     - ansible_service_mgr == 'systemd'
     - restic_create_schedule | bool
-
