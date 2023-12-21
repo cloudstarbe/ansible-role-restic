@@ -32,7 +32,7 @@
       with_items: '{{ restic_backups }}'
       when:
         - item.name is defined
-        - item.scheduled | default(false)
+        - item.enabled | default(true)
 
     - name: (SCHEDULE) (SYSTEMD) Enable restic service
       become: true
@@ -45,7 +45,7 @@
       notify: systemctl restart restic.timer
       when:
         - item.name is defined
-        - item.scheduled | default(false)
+        - item.enabled | default(true)
 
     - name: (SCHEDULE) (SYSTEMD) Enable and start restic timer
       become: true
@@ -59,7 +59,7 @@
       notify: systemctl restart restic.timer
       when:
         - item.name is defined
-        - item.scheduled | default(false)
+        - item.enabled | default(true)
   rescue:
     - name: Set cronjob intead of systemd
       ansible.builtin.set_fact:

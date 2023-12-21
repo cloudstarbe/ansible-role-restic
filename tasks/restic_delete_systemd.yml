@@ -16,8 +16,7 @@
       changed_when: false
       when:
         - item.name is defined
-        - item.scheduled | default(false)
-        - restic_schedule_type == "cronjob" or restic_force_cron | default(false)
+        - not item.enabled | default(true)
 
     - name: (SCHEDULE) (SYSTEMD) mask restic service
       become: true
@@ -30,8 +29,7 @@
       with_items: '{{ restic_backups }}'
       when:
         - item.name is defined
-        - item.scheduled | default(false)
-        - restic_schedule_type == "cronjob" or restic_force_cron | default(false)
+        - not item.enabled | default(true)
       ignore_errors: true
       failed_when: false
       tags: skip_ansible_lint
@@ -45,8 +43,7 @@
       with_items: '{{ restic_backups }}'
       when:
         - item.name is defined
-        - item.scheduled | default(false)
-        - restic_schedule_type == "cronjob" or restic_force_cron | default(false)
+        - not item.enabled | default(true)
 
     - name: (SCHEDULE) (SYSTEMD) delete systemd .service file
       become: true
@@ -56,5 +53,4 @@
       with_items: '{{ restic_backups }}'
       when:
         - item.name is defined
-        - item.scheduled | default(false)
-        - restic_schedule_type == "cronjob" or restic_force_cron | default(false)
+        - not item.enabled | default(true) 
