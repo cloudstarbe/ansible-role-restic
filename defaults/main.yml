@@ -38,3 +38,11 @@ restic_create_cron: false
 restic_report_healthchecks: false
 restic_report_healthchecks_url: https://healthchecks.io/
 restic_report_healthchecks_ping_key: 'someKeyFromHealthchecksProfile'
+
+restic_backrest_version: v1.5.1
+restic_backrest_url: https://github.com/garethgeorge/backrest/releases/download/{{ restic_backrest_version }}/backrest_Linux_x86_64.tar.gz
+restic_backrest_download_path: '/opt/backrest'
+restic_backrest_install_path: '/usr/local/bin'
+restic_backrest_listen_ip: "0.0.0.0"
+restic_backrest_listen_port: "9898"
+restic_backrest_version: "v1.5.1"

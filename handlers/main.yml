@@ -14,3 +14,15 @@
     - item.name is defined
     - item.scheduled | default(false)
     - ansible_service_mgr == 'systemd'
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart backrest
+  become: true
+  ansible.builtin.systemd:
+    name: "backrest"
+    state: 'restarted'
+    enabled: true
+    masked: false

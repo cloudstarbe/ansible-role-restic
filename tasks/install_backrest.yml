@@ -1,0 +1,57 @@
+---
+- name: (Backrest) install and configure bakrest
+  become: true
+  block:
+    - name: (Backrest) Create client folders
+      ansible.builtin.file:
+        path: "{{ restic_backrest_download_path }}/{{ restic_backrest_version }}"
+        state: directory
+        mode: '0755'
+
+    - name: (Backrest) Create data folder
+      ansible.builtin.file:
+        path: "{{ restic_backrest_download_path }}/data"
+        state: directory
+        mode: '0755'
+
+    - name: (Backrest) Create Service
+      ansible.builtin.template:
+        src: backrest_systemd.service.j2
+        dest: "/etc/systemd/system/backrest.service"
+        mode: '0644'
+      notify:
+        - Reload systemd
+        - Restart backrest
+
+    - name: (Backrest) Create config
+      ansible.builtin.template:
+        src: backrest_config.json.j2
+        dest: "{{ restic_backrest_download_path }}/backrest_config.json"
+        mode: '0640'
+      notify:
+        - Restart backrest
+
+    - name: (Backrest) Download client binary
+      ansible.builtin.get_url:
+        url: '{{ restic_backrest_url }}'
+        dest: "{{ restic_backrest_download_path }}"
+        force: true
+        mode: '0644'
+
+    - name: (Backrest) Extract backrest binary from tarball
+      ansible.builtin.unarchive:
+        src: "{{ restic_backrest_download_path }}/backrest_Linux_x86_64.tar.gz"
+        dest: "{{ restic_backrest_download_path }}/{{ restic_backrest_version }}"
+        remote_src: true
+        creates: "{{ restic_backrest_download_path }}/{{ restic_backrest_version }}/backrest"
+      notify:
+        - Restart backrest
+
+    - name: (Backrest) Create symbolic link to the correct version
+      ansible.builtin.file:
+        src: "{{ restic_backrest_download_path }}/{{ restic_backrest_version }}/backrest"
+        path: '{{ restic_backrest_install_path }}/backrest'
+        state: link
+        force: true
+      notify:
+        - Restart backrest

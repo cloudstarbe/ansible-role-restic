@@ -1,0 +1,15 @@
+[Unit]
+Description=Backrest Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart={{ restic_backrest_install_path }}/backrest
+Environment="BACKREST_PORT={{ restic_backrest_listen_ip }}:{{ restic_backrest_listen_port | default('9898') }}"
+Environment="BACKREST_DATA={{ restic_backrest_download_path }}/data"
+Environment="BACKREST_CONFIG={{ restic_backrest_download_path }}/backrest_config.json"
+
+[Install]
+WantedBy=multi-user.target

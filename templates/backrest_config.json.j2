@@ -1,0 +1,35 @@
+{
+    "modno": 2,
+    "version": 3,
+    "instance": "{{ ansible_hostname }}",
+    "repos": [
+{% for repo_name, repo_data in restic_repos.items() %}
+        {
+            "id": "{{ repo_name }}",
+            "uri": "{{ repo_data.location }}",
+            "password": "{{ repo_data.password }}",
+            "prunePolicy": {
+                "schedule": {},
+                "maxUnusedPercent": 10
+            },
+            "checkPolicy": {
+                "schedule": {},
+                "readDataSubsetPercent": 0
+            },
+            "commandPrefix": {}
+        }{% if not loop.last %},{% endif %}
+
+{% endfor %}
+    ],
+    "auth": {
+        "users": [
+{% for user in restic_backrest_users %}
+            {
+                "name": "{{ user.username }}",
+                "passwordBcrypt": "{{ user.password }}"
+            }{% if not loop.last %},{% endif %}
+
+{% endfor %}
+        ]
+    }
+}

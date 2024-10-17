@@ -37,3 +37,7 @@
 - name: Run backups now
   ansible.builtin.include_tasks: 'run_backup.yml'
   when: restic_backup_now | bool
+
+- name: Install Backrest
+  ansible.builtin.include_tasks: 'install_backrest.yml'
+  when: restic_backrest_users is defined and restic_backrest_users | length
